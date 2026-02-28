@@ -2,22 +2,25 @@
 ================================================================================
 SYNC IMPACT REPORT
 ================================================================================
-Version change: N/A (template) → 1.0.0
-Bump rationale: Initial constitution adoption from template
+Version change: 1.0.0 → 1.1.0
+Bump rationale: MINOR version bump - Expanded Principles I and IV with explicit 
+accessibility and UX guidance based on learnings from spec 003 (Streamlined UX).
 
-Modified principles: N/A (initial adoption)
-Added sections:
-  - 7 Core Principles (I-VII)
-  - Technology Stack section
-  - Development Workflow section
-  - Governance rules
+Modified principles:
+  - Principle I (User-First Design): Added explicit guidance on auto-activation 
+    patterns and progressive disclosure learned from spec 003
+  - Principle IV (Responsive & Accessible): Added mandatory ARIA label and 
+    semantic HTML requirements demonstrated in spec 003 implementation
+
+Added sections: None
 
 Removed sections: None
 
 Templates requiring updates:
-  ✅ plan-template.md - No changes required (generic Constitution Check placeholder)
-  ✅ spec-template.md - No changes required (compatible with flexible testing)
-  ✅ tasks-template.md - No changes required (tests marked as optional aligns with Principle VI)
+  ✅ plan-template.md - Constitution Check section remains compatible
+  ✅ spec-template.md - Accessibility requirements now explicit reference
+  ✅ tasks-template.md - No changes required
+  ⚠️ Future specs should reference expanded accessibility guidance in Principle IV
 
 Follow-up TODOs: None
 ================================================================================
@@ -33,10 +36,13 @@ The application MUST prioritize user experience in distance comparison workflows
 
 - Every feature MUST clearly serve the primary use case: comparing distances in two side-by-side maps
 - UI interactions MUST be intuitive and require minimal clicks to accomplish core tasks
+- Auto-activation patterns SHOULD be preferred when a tool represents the application's primary purpose (avoiding unnecessary activation steps)
+- Progressive disclosure SHOULD be used to hide non-essential controls until needed (e.g., reset button appears only when a line exists)
 - Visual feedback MUST be immediate when users interact with maps or distance markers
 - Error states MUST be communicated clearly with actionable guidance
+- Usage instructions or onboarding guidance SHOULD be provided for first-time users when the workflow is non-obvious
 
-**Rationale**: The application's value proposition centers on making distance comparison effortless. Poor UX undermines this core purpose.
+**Rationale**: The application's value proposition centers on making distance comparison effortless. Poor UX undermines this core purpose. Spec 003 demonstrated that auto-activation and progressive disclosure significantly reduce time-to-first-success for new users (target: <30 seconds).
 
 ### II. Component Architecture
 
@@ -62,14 +68,17 @@ TypeScript strict mode MUST be enabled and enforced across the codebase.
 
 ### IV. Responsive & Accessible
 
-The application MUST work across devices and meet accessibility standards.
+The application MUST work across devices and meet accessibility standards (WCAG 2.1 Level AA target).
 
 - Side-by-side layout MUST gracefully adapt to mobile (stacked view) and desktop (horizontal split)
-- All interactive elements MUST be keyboard navigable
+- All interactive elements MUST be keyboard navigable with visible focus indicators
+- Interactive controls MUST have appropriate ARIA labels (`aria-label`, `role`) and semantic HTML elements
+- Disabled states MUST use the `:disabled` attribute (not just visual styling) for proper accessibility tree representation
 - Map components MUST provide screen reader announcements for distance changes
+- Instructional content MUST use semantic regions (`role="region"` with `aria-label`) for screen reader navigation
 - Color MUST NOT be the only means of conveying information; use labels and patterns
 
-**Rationale**: Distance comparison is useful in many contexts—planning trips on mobile, presenting to others on desktop. Accessibility ensures all users can benefit.
+**Rationale**: Distance comparison is useful in many contexts—planning trips on mobile, presenting to others on desktop. Accessibility ensures all users can benefit. Spec 003 implementation demonstrated the importance of explicit ARIA labeling for Vue components that lack default semantic meaning.
 
 ### V. Performance
 
@@ -136,4 +145,4 @@ This constitution supersedes all other project practices. Amendments require:
 
 All code reviews MUST verify compliance with these principles. Deviations MUST be documented and justified in the PR description.
 
-**Version**: 1.0.0 | **Ratified**: 2026-02-28 | **Last Amended**: 2026-02-28
+**Version**: 1.1.0 | **Ratified**: 2026-02-28 | **Last Amended**: 2026-02-28
