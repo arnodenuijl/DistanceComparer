@@ -152,3 +152,98 @@ export type LayoutMode = 'side-by-side' | 'stacked'
  * Input mode for map interaction
  */
 export type InputMode = 'mouse' | 'touch' | 'keyboard'
+
+// ============================================================================
+// Distance Line Types (Feature 002)
+// ============================================================================
+
+/**
+ * Full internal state for a distance line (data-model.md: DistanceLineState)
+ * Contains all attributes for state management
+ */
+export interface DistanceLineState {
+  /** Unique identifier for the line instance */
+  id: string
+  /** Starting point of the line */
+  startPoint: LineEndpoint
+  /** Ending point of the line */
+  endPoint: LineEndpoint
+  /** Real-world geodesic distance in meters */
+  distanceMeters: number
+  /** Formatted distance string with units (e.g., "5.2 km") */
+  distanceDisplay: string
+  /** Which map this line belongs to */
+  mapSide: 'left' | 'right'
+  /** Whether line is currently visible */
+  visible: boolean
+  /** Visual styling properties */
+  style: LineStyle
+}
+
+/**
+ * Simplified component interface for distance line (contract: DistanceLine)
+ * Public API with minimal attributes
+ */
+export interface DistanceLine {
+  /** Unique identifier */
+  id: string
+  /** Start point coordinates */
+  startPoint: Coordinate
+  /** End point coordinates */
+  endPoint: Coordinate
+  /** Real-world distance in meters */
+  distanceMeters: number
+  /** Bearing in degrees (0-360), for right map only */
+  bearing?: number
+}
+
+/**
+ * Draggable anchor point (endpoint) of a distance line
+ */
+export interface LineEndpoint {
+  /** Unique identifier */
+  id: string
+  /** Geographic coordinates */
+  position: Coordinate
+  /** Whether endpoint is currently being dragged */
+  isDragging: boolean
+}
+
+/**
+ * Rotational state of right map's distance line
+ */
+export interface LineOrientation {
+  /** Direction in degrees (0=North, 90=East, 180=South, 270=West) */
+  bearing: number
+  /** Whether line is currently being rotated */
+  isRotating: boolean
+  /** Point around which rotation occurs */
+  rotationAnchor: Coordinate
+}
+
+/**
+ * Visual styling configuration for distance line
+ */
+export interface LineStyle {
+  /** Hex color code */
+  color: string
+  /** Line thickness in pixels */
+  weight: number
+  /** Line opacity (0-1) */
+  opacity: number
+  /** Dash pattern (e.g., '5, 10') or undefined for solid */
+  dashArray?: string
+  /** Endpoint circle radius in pixels */
+  endpointRadius: number
+  /** Endpoint fill color hex */
+  endpointFillColor: string
+  /** Endpoint border color hex */
+  endpointBorderColor: string
+  /** Endpoint border thickness in pixels */
+  endpointBorderWeight: number
+}
+
+/**
+ * Distance unit for display formatting
+ */
+export type DistanceUnit = 'meters' | 'kilometers' | 'miles' | 'feet'

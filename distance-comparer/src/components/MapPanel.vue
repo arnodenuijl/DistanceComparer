@@ -35,6 +35,11 @@
       <slot></slot>
     </div>
 
+    <!-- T018: Slot for distance line overlay (Feature 002) -->
+    <div v-if="isReady" class="map-panel__distance-line">
+      <slot name="distance-line" :map="map" :map-id="id"></slot>
+    </div>
+
     <!-- T083-T086: ARIA live region for screen reader announcements -->
     <div
       class="map-panel__sr-only"
@@ -66,6 +71,8 @@ interface Props {
   tileUrl?: string
   attribution?: string
   enableKeyboard?: boolean
+  showDistanceLine?: boolean  // T019: Feature 002 - Show distance line overlay
+  lineCreationMode?: boolean  // T019: Feature 002 - Enable line creation mode
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -77,6 +84,8 @@ const props = withDefaults(defineProps<Props>(), {
   tileUrl: () => DEFAULT_TILE_CONFIG.urlTemplate,
   attribution: () => DEFAULT_TILE_CONFIG.attribution,
   enableKeyboard: true,
+  showDistanceLine: false,     // T019: Feature 002 default
+  lineCreationMode: false,     // T019: Feature 002 default
 })
 
 // T021: Define events
@@ -90,6 +99,8 @@ const emit = defineEmits<{
   'error': [payload: { mapId: string; error: MapError }]
   'focus-gained': [payload: { mapId: string }]
   'focus-lost': [payload: { mapId: string }]
+  'line-created': [payload: any]  // T019: Feature 002 event
+  'distance-changed': [payload: any]  // T019: Feature 002 event
 }>()
 
 // T020: Integrate useLeafletMap

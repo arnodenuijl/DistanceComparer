@@ -3,6 +3,7 @@
 import { ref } from 'vue'
 import MapContainer from './components/MapContainer.vue'
 import MapPanel from './components/MapPanel.vue'
+import DistanceLine from './components/DistanceLine.vue'
 import type { Coordinate, Bounds } from './types/map.types'
 
 // T037-T038: Configure both maps with world view
@@ -51,6 +52,56 @@ const handleError = (event: any) => {
   lastEvent.value = `${event.mapId}: ERROR - ${event.error.message}`
   console.error('Map error:', event)
 }
+
+// MVP Test: Distance Line Tool State
+const showDistanceTool = ref(false)
+const isCreatingLine = ref(false)
+const currentDistance = ref<string>('')
+
+// T038: Ref to right map DistanceLine component for synchronization
+const rightDistanceLine = ref<InstanceType<typeof DistanceLine> | null>(null)
+
+const toggleDistanceTool = () => {
+  showDistanceTool.value = !showDistanceTool.value
+  if (showDistanceTool.value) {
+    isCreatingLine.value = true
+    lastEvent.value = 'Distance tool activated - Click two points on the left map'
+  } else {
+    isCreatingLine.value = false
+    currentDistance.value = ''
+    lastEvent.value = 'Distance tool deactivated'
+  }
+}
+
+const handleLineCreated = (event: any) => {
+  isCreatingLine.value = false
+  lastEvent.value = `Line created!`
+  console.log('Line created:', event)
+
+  // T040-T041: Create initial line on right map when left line is created
+  // The right line will be positioned at the center of the right map with 0° bearing
+  if (rightDistanceLine.value && event.line) {
+    rightDistanceLine.value.updateDistance(event.line.distanceMeters)
+  }
+}
+
+// T037-T038: Handle distance changes and sync to right map
+const handleDistanceChanged = (event: any) => {
+  currentDistance.value = event.distanceDisplay
+  lastEvent.value = `Distance: ${event.distanceDisplay}`
+  console.log('Distance changed:', event)
+
+  // T038: Update right map line distance (synchronized)
+  if (rightDistanceLine.value && event.distanceMeters) {
+    const startTime = performance.now()
+    rightDistanceLine.value.updateDistance(event.distanceMeters)
+    const syncTime = performance.now() - startTime
+    
+    // T042: Log sync latency (should be < 100ms)
+    console.log(`Sync latency: ${syncTime.toFixed(2)}ms`)
+  }
+}
+
 </script>
 
 <template>
@@ -59,6 +110,18 @@ const handleError = (event: any) => {
     <header class="app-header">
       <h1>Distance Comparer</h1>
       <p class="app-subtitle">Compare locations with dual interactive maps</p>
+      <div class="header-controls">
+        <button 
+          @click="toggleDistanceTool" 
+          class="distance-tool-button"
+          :class="{ active: showDistanceTool }"
+        >
+          {{ showDistanceTool ? '✓ Distance Tool Active' : '📏 Activate Distance Tool' }}
+        </button>
+        <span v-if="currentDistance" class="distance-display">
+          Distance: {{ currentDistance }}m
+        </span>
+      </div>
       <div class="event-log">{{ lastEvent }}</div>
     </header>
 
@@ -78,7 +141,20 @@ const handleError = (event: any) => {
             @loading-start="handleLoadingStart"
             @loading-end="handleLoadingEnd"
             @error="handleError"
-          />
+            @line-created="handleLineCreated"
+            @distance-changed="handleDistanceChanged"
+          >
+            <template #distance-line="{ map }">
+              <DistanceLine
+                v-if="showDistanceTool"
+                :map="map"
+                side="left"
+                :creation-mode="isCreatingLine"
+                @line-created="handleLineCreated"
+                @distance-changed="handleDistanceChanged"
+              />
+            </template>
+          </MapPanel>
         </template>
         
         <template #right>
@@ -90,7 +166,20 @@ const handleError = (event: any) => {
             @loading-start="handleLoadingStart"
             @loading-end="handleLoadingEnd"
             @error="handleError"
-          />
+          >
+            <!-- T040-T041: Right map distance line (synchronized, independent position) -->
+            <template #distance-line="{ map }">
+              <DistanceLine
+                v-if="showDistanceTool"
+                ref="rightDistanceLine"
+                :map="map"
+                side="right"
+                :creation-mode="false"
+                :draggable="true"
+                :rotatable="true"
+              />
+            </template>
+          </MapPanel>
         </template>
 
         <template #header="{ layout }">
@@ -132,6 +221,46 @@ const handleError = (event: any) => {
   margin: 4px 0 0 0;
   font-size: 14px;
   opacity: 0.9;
+}
+
+.header-controls {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.distance-tool-button {
+  padding: 8px 16px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.distance-tool-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.distance-tool-button.active {
+  background-color: rgba(255, 255, 255, 0.95);
+  color: #667eea;
+  border-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.distance-display {
+  padding: 6px 12px;
+  background-color: rgba(255, 255, 255, 0.95);
+  color: #667eea;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 14px;
 }
 
 .event-log {

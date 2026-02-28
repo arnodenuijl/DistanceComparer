@@ -73,11 +73,11 @@ A user wants to compare the distance at different orientations on the right map.
 
 ### Edge Cases
 
-- What happens when the user tries to place both endpoints at the same location (zero-length line)?
-- What happens when the distance line extends beyond the visible map bounds?
-- What happens when the right map is zoomed to a level where the line length exceeds the viewport size?
-- How does the system handle extremely short distances (e.g., 1 meter) versus extremely long distances (e.g., across continents)?
-- What happens when the user switches the right map to a location near the poles where map distortion is significant?
+- **Zero-length line**: When the user tries to place both endpoints at the same location, the system creates a line with 0 meters distance. Rotation is disabled on the right map (no bearing can be calculated). A tooltip displays "Zero-length line: move endpoints to measure distance."
+- **Line extends beyond viewport**: When the distance line extends beyond the visible map bounds, the line remains fully rendered and partially visible. Users can pan the map to see the complete line. No auto-panning or clipping occurs.
+- **Right map line exceeds viewport**: When the right map is zoomed to a level where the line length exceeds the viewport size, the line remains anchored at its start point and extends beyond visible bounds. Users can zoom out or pan to see the full line.
+- **Extreme distances**: System handles distances from 1 meter to 20,000+ kilometers. For very short distances (<10m), display switches to meters with 2 decimal places. For long distances (>1000km), display uses kilometers.
+- **Polar distortion**: **Known Limitation** - Map projection distortion becomes significant near polar regions (±80° latitude and beyond). Distance calculations remain accurate (geodesic), but visual line rendering may appear curved or distorted due to Web Mercator projection limitations. No special handling implemented in initial version.
 
 ## Requirements *(mandatory)*
 
@@ -88,14 +88,22 @@ A user wants to compare the distance at different orientations on the right map.
 - **FR-003**: Users MUST be able to drag either endpoint of the left map line to a new geographic location
 - **FR-004**: System MUST calculate the real-world distance (in kilometers or miles) between the two endpoints using geodesic calculation
 - **FR-005**: System MUST display a corresponding line on the right map with identical real-world length to the left map line
-- **FR-006**: Right map line MUST be independently positionable - it can appear anywhere on the right map regardless of the left map's view location
+- **FR-006**: Right map line MUST be independently positionable - it can appear anywhere on the right map regardless of the left map's view location. Initial position defaults to right map center with 0\u00b0 bearing (due North).
 - **FR-007**: Users MUST be able to rotate the right map line to any orientation
 - **FR-008**: Right map line length MUST remain locked and synchronized with the left map line length at all times
 - **FR-009**: When the left map line length changes (via endpoint dragging), the right map line MUST automatically update to match the new length
-- **FR-010**: System MUST visually distinguish the distance line from other map elements (e.g., through color, thickness, or style)
+- **FR-010**: System MUST visually distinguish the distance line from other map elements with minimum 3px line weight, 0.8 opacity, and high-contrast color (default: #FF0000 red) that maintains 3:1 contrast ratio with typical map backgrounds
 - **FR-011**: System MUST support only one distance line at a time (adding a new line will replace the existing one)
 - **FR-012**: Line endpoints MUST be visually distinct and indicate they are draggable
 - **FR-013**: System MUST provide real-time visual feedback while dragging line endpoints or rotating the right line
+- **FR-014**: System MUST provide a button or keyboard shortcut to activate and deactivate the distance line tool (tool starts inactive, activation enables line creation mode)
+- **FR-015**: Users MUST be able to clear the distance line without creating a new one (e.g., via Escape key, clear button, or tool deactivation)
+- **FR-016**: System MUST support keyboard controls for line manipulation:
+  - Arrow Left/Right: Rotate right map line by ±5° (when line exists and right map focused)
+  - Shift + Arrow Left/Right: Rotate right map line by ±15° (coarse adjustment)
+  - Escape: Cancel line creation mode or clear existing line
+  - Enter: Complete line creation (when in awaiting-second-click mode)
+  - Tab: Cycle focus between line endpoints for keyboard-based repositioning
 
 ### Key Entities
 
@@ -115,3 +123,19 @@ A user wants to compare the distance at different orientations on the right map.
 - **SC-006**: 100% of line length changes on the left map trigger corresponding updates on the right map within 100ms
 - **SC-007**: Users can successfully complete a distance comparison task (draw line, modify endpoints, observe right map) in under 30 seconds
 - **SC-008**: The distance line remains visible and functional when panning or zooming to any standard map location worldwide
+
+## Performance Requirements *(mandatory)*
+
+### Response Time Targets
+
+- **Line Creation**: <100ms from second click to line appearance on both maps
+- **Endpoint Drag**: <16ms update latency during drag (60fps smooth rendering)
+- **Distance Calculation**: <10ms for geodesic computation (Haversine formula)
+- **Left-Right Sync**: <100ms propagation delay from left map change to right map update
+- **Rotation**: Minimum 30fps smooth rotation without visual stuttering
+
+### Device Support
+
+- **Desktop**: Full functionality with mouse and keyboard controls (primary target)
+- **Mobile/Tablet**: Touch-based dragging and line creation supported via Leaflet's built-in touch handlers. Rotation via touch drag. Keyboard shortcuts disabled on touch devices.
+- **Cross-Browser**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
