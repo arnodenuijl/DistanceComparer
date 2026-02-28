@@ -2,27 +2,36 @@
 ================================================================================
 SYNC IMPACT REPORT
 ================================================================================
-Version change: 1.0.0 → 1.1.0
-Bump rationale: MINOR version bump - Expanded Principles I and IV with explicit 
-accessibility and UX guidance based on learnings from spec 003 (Streamlined UX).
+Version change: 1.1.0 → 2.0.0
+Bump rationale: MAJOR version bump - Removed mandatory WCAG 2.1 Level AA 
+accessibility requirements from Principle IV based on stakeholder decision 
+in spec 004 (Remove Keyboard Accessibility). Accessibility support is now optional.
 
 Modified principles:
-  - Principle I (User-First Design): Added explicit guidance on auto-activation 
-    patterns and progressive disclosure learned from spec 003
-  - Principle IV (Responsive & Accessible): Added mandatory ARIA label and 
-    semantic HTML requirements demonstrated in spec 003 implementation
+  - Principle IV (Responsive & Accessible): **BREAKING CHANGE** - Removed mandatory 
+    WCAG 2.1 Level AA target, keyboard navigation requirements, ARIA label 
+    requirements, and screen reader support requirements. Accessibility is now 
+    OPTIONAL based on target audience and feature-specific requirements.
 
 Added sections: None
 
-Removed sections: None
+Removed sections: 
+  - Mandatory accessibility requirements (WCAG 2.1 Level AA)
+  - Mandatory keyboard navigation
+  - Mandatory ARIA labels
+  - Mandatory screen reader announcements
 
 Templates requiring updates:
-  ✅ plan-template.md - Constitution Check section remains compatible
-  ✅ spec-template.md - Accessibility requirements now explicit reference
-  ✅ tasks-template.md - No changes required
-  ⚠️ Future specs should reference expanded accessibility guidance in Principle IV
+  ⚠️ plan-template.md - Constitution Check section will no longer flag accessibility 
+     removal as a violation
+  ⚠️ spec-template.md - Accessibility requirements are now optional, not mandatory
+  ⚠️ All existing specs (001-003) - Were developed under mandatory accessibility; 
+     retroactively compliant but note principle change
 
-Follow-up TODOs: None
+Follow-up TODOs: 
+  - Spec 004 can now proceed past constitutional gate
+  - Future specs may choose to omit accessibility features
+  - Document accessibility stance in README if features are removed
 ================================================================================
 -->
 
@@ -66,19 +75,28 @@ TypeScript strict mode MUST be enabled and enforced across the codebase.
 
 **Rationale**: Maps involve complex coordinate systems. Type safety prevents subtle bugs like mixing latitude/longitude or distance units.
 
-### IV. Responsive & Accessible
+### IV. Responsive & Device Support
 
-The application MUST work across devices and meet accessibility standards (WCAG 2.1 Level AA target).
+The application MUST work across devices and adapt to different screen sizes.
 
 - Side-by-side layout MUST gracefully adapt to mobile (stacked view) and desktop (horizontal split)
-- All interactive elements MUST be keyboard navigable with visible focus indicators
-- Interactive controls MUST have appropriate ARIA labels (`aria-label`, `role`) and semantic HTML elements
-- Disabled states MUST use the `:disabled` attribute (not just visual styling) for proper accessibility tree representation
-- Map components MUST provide screen reader announcements for distance changes
-- Instructional content MUST use semantic regions (`role="region"` with `aria-label`) for screen reader navigation
-- Color MUST NOT be the only means of conveying information; use labels and patterns
+- Touch gestures MUST be supported on mobile devices (pinch, drag)
+- Mouse interactions MUST be supported on desktop devices (click, drag, scroll)
+- Viewport responsiveness MUST handle breakpoints appropriately
 
-**Rationale**: Distance comparison is useful in many contexts—planning trips on mobile, presenting to others on desktop. Accessibility ensures all users can benefit. Spec 003 implementation demonstrated the importance of explicit ARIA labeling for Vue components that lack default semantic meaning.
+**Accessibility (Optional)**:
+Accessibility features (keyboard navigation, ARIA labels, screen reader support, focus indicators) are OPTIONAL and should be evaluated on a per-feature basis considering:
+- Target audience requirements
+- Maintenance cost vs. benefit
+- Feature complexity
+- Stakeholder priorities
+
+If accessibility features are omitted, this MUST be:
+- Documented in user-facing documentation (README)
+- Justified in the feature specification
+- Reviewed during code review
+
+**Rationale**: Distance comparison is most commonly used by sighted users with mouse/touch input on desktop or mobile devices. While accessibility benefits all users, mandatory WCAG compliance may not align with all project goals. The amendment (v2.0.0) allows teams to make informed decisions about accessibility investment based on their specific user base and resources. Spec 004 demonstrated that stakeholder priorities may favor simplified maintenance over universal accessibility.
 
 ### V. Performance
 
@@ -145,4 +163,4 @@ This constitution supersedes all other project practices. Amendments require:
 
 All code reviews MUST verify compliance with these principles. Deviations MUST be documented and justified in the PR description.
 
-**Version**: 1.1.0 | **Ratified**: 2026-02-28 | **Last Amended**: 2026-02-28
+**Version**: 2.0.0 | **Ratified**: 2026-02-28 | **Last Amended**: 2026-02-28

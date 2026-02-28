@@ -88,16 +88,6 @@ export const DEFAULT_MAP_CONFIG: MapConfig = {
 export const EVENT_DEBOUNCE_DELAY = 150
 
 /**
- * Pan step size for keyboard navigation (pixels)
- */
-export const KEYBOARD_PAN_STEP = 50
-
-/**
- * Zoom step size for keyboard navigation (levels)
- */
-export const KEYBOARD_ZOOM_STEP = 1
-
-/**
  * Responsive breakpoint width (pixels)
  * Below this width, maps stack vertically
  */

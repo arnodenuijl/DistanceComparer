@@ -107,7 +107,7 @@ const handleDistanceChanged = (event: any) => {
         </div>
         
         <!-- US1: Usage instructions for first-time users -->
-        <div class="usage-instructions" role="region" aria-label="Instructions">
+        <div class="usage-instructions">
           <ol>
             <li>Click two points on the left map to measure distance</li>
             <li>Drag and rotate the line on the right map to compare</li>
@@ -125,7 +125,6 @@ const handleDistanceChanged = (event: any) => {
           class="reset-button"
           :class="{ hidden: !currentDistance }"
           type="button"
-          aria-label="Reset distance line"
           :disabled="!currentDistance"
         >
           Reset

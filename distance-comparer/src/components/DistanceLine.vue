@@ -1,21 +1,8 @@
 <template>
   <!-- T014: DistanceLine component integrating composables -->
-  <!-- T053: ARIA labels for accessibility -->
   <div 
     class="distance-line"
-    role="application"
-    :aria-label="`Distance measurement tool for ${props.side} map`"
   >
-    <!-- T054: Screen reader announcements for distance changes -->
-    <div 
-      class="sr-only" 
-      role="status" 
-      aria-live="polite" 
-      aria-atomic="true"
-    >
-      {{ screenReaderText }}
-    </div>
-
     <!-- Slot for custom distance label display -->
     <slot
       :line="line"
@@ -39,7 +26,7 @@
  * T050: Keyboard rotation listeners
  * T053-T054: Accessibility (ARIA, screen reader)
  */
-import { watch, onMounted, onUnmounted, toRef, ref } from 'vue'
+import { watch, onMounted, onUnmounted, toRef } from 'vue'
 import type L from 'leaflet'
 import type { DistanceLine as DistanceLineType, Coordinate } from '../types/map.types'
 import { useDistanceLine } from '../composables/useDistanceLine'
@@ -203,11 +190,6 @@ const lineRotation = useLineRotation({
       timestamp: Date.now(),
     })
   },
-  enableKeyboard: props.rotatable, // T050: Enable keyboard only if rotatable
-  isRotationActive: () => {
-    // T057: Only rotate if line exists and is not zero-length
-    return !!distanceLine.line.value && !distanceLine.isZeroLength.value
-  },
 })
 
 const lineCreation = useLineCreation({
@@ -240,20 +222,6 @@ const lineCreation = useLineCreation({
     })
   },
 })
-
-// T054: Screen reader text for accessibility announcements
-const screenReaderText = ref('')
-
-// T054: Update screen reader text when distance changes
-watch(
-  () => distanceLine.distanceDisplay.value,
-  (newDisplay) => {
-    if (newDisplay) {
-      const action = props.side === 'left' ? 'Measurement updated' : 'Synchronized distance'
-      screenReaderText.value = `${action}: ${newDisplay}`
-    }
-  }
-)
 
 // T046: Method to rotate line (updates bearing and endpoint)
 const rotateLine = (newBearing: number): void => {
@@ -360,12 +328,6 @@ onMounted(() => {
 
   props.map.on('click', lineCreation.handleMapClick)
   props.map.on('mousemove', lineCreation.handleMouseMove)
-
-  // T050: Wire up keyboard event listeners for rotation (only if rotatable)
-  // Use capture phase to intercept before Leaflet's keyboard handler
-  if (props.rotatable && props.side === 'right') {
-    window.addEventListener('keydown', lineRotation.handleKeyboardRotation, { capture: true })
-  }
 })
 
 // T021: Cleanup Leaflet layers on unmount
@@ -375,11 +337,6 @@ onUnmounted(() => {
   // Remove event listeners
   props.map.off('click', lineCreation.handleMapClick)
   props.map.off('mousemove', lineCreation.handleMouseMove)
-
-  // Remove keyboard listeners
-  if (props.rotatable && props.side === 'right') {
-    window.removeEventListener('keydown', lineRotation.handleKeyboardRotation, { capture: true })
-  }
 
   // Cleanup drag functionality
   lineDrag.cleanup()
