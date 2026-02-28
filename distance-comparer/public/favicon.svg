@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- T091: Distance Comparer favicon - Two map pins side by side -->
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="url(#grad)" />
+  
+  <!-- Left pin -->
+  <path d="M 35 30 C 35 24 30 20 25 20 C 20 20 15 24 15 30 C 15 36 25 50 25 50 C 25 50 35 36 35 30 Z" 
+        fill="white" opacity="0.9" />
+  <circle cx="25" cy="30" r="4" fill="#667eea" />
+  
+  <!-- Right pin -->
+  <path d="M 85 30 C 85 24 80 20 75 20 C 70 20 65 24 65 30 C 65 36 75 50 75 50 C 75 50 85 36 85 30 Z" 
+        fill="white" opacity="0.9" />
+  <circle cx="75" cy="30" r="4" fill="#764ba2" />
+  
+  <!-- Connecting line (distance indicator) -->
+  <line x1="25" y1="50" x2="75" y2="50" stroke="white" stroke-width="2" stroke-dasharray="3,3" opacity="0.7" />
+</svg>

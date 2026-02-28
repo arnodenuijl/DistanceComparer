@@ -1,0 +1,49 @@
+/* Base CSS Reset and Global Styles */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  height: 100%;
+  width: 100%;
+}
+
+/* Ensure images and media are responsive - exclude Leaflet */
+img:not(.leaflet-tile):not(.leaflet-marker-icon),
+video,
+canvas:not(.leaflet-zoom-animated) {
+  max-width: 100%;
+  display: block;
+}
+
+/* Remove default button styles */
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Focus styles for accessibility - exclude Leaflet internals */
+:focus-visible:not(.leaflet-container *) {
+  outline: 2px solid #646cff;
+  outline-offset: 2px;
+}

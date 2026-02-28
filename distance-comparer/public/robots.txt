@@ -1,0 +1,6 @@
+# T093: robots.txt for search engine crawlers
+User-agent: *
+Allow: /
+
+# Sitemap (update with actual sitemap URL when available)
+# Sitemap: https://yourdomain.com/sitemap.xml
