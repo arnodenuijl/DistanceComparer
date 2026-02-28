@@ -217,7 +217,7 @@ const handleDistanceChanged = (event: any) => {
 
 .header-top {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: flex-start;
   gap: 32px;
 }
