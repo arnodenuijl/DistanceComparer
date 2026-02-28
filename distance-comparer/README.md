@@ -5,16 +5,13 @@ A web application for comparing geographic locations using dual interactive maps
 ## Features
 
 - **Dual Map Display**: Two independent OpenStreetMap instances side-by-side (desktop) or stacked (mobile)
-- **Independent Navigation**: Pan and zoom each map separately using mouse, touch, or keyboard
+- **Independent Navigation**: Pan and zoom each map separately using mouse or touch
 - **Distance Line Tool**: Measure and compare distances between two geographic points
   - Create lines with two clicks on the left map
   - Drag endpoints to adjust measurements
   - Synchronized distance display on right map
-  - Rotate synchronized lines with keyboard controls
   - Real-time geodesic distance calculations (±0.5% accuracy)
-- **Keyboard Accessible**: Full keyboard navigation with arrow keys, +/- for zoom, and Tab to switch focus
 - **Responsive Layout**: Automatically adapts to viewport size with breakpoint at 768px
-- **Screen Reader Support**: ARIA live regions announce zoom, position, and distance changes
 - **Error Handling**: Automatic tile retry with exponential backoff, graceful error display
 - **Performance Optimized**: <3s load time, <100ms interaction delay, <500KB bundle size
 
@@ -57,23 +54,6 @@ npm run preview
 
 - **Pan**: Click and drag on a map to move it
 - **Zoom**: Use scroll wheel, pinch gesture, or zoom controls
-- **Focus**: Click on a map to focus it (shows blue border)
-
-### Keyboard Navigation
-
-1. Press `Tab` to focus the first map (blue border appears)
-2. Use arrow keys (↑↓←→) to pan the focused map
-3. Press `+` or `-` to zoom in/out
-4. Press `Tab` again to switch to the second map
-5. Press `Escape` to remove focus
-
-### Screen Reader Support
-
-When using a screen reader (NVDA, JAWS, VoiceOver):
-- Navigate to map with Tab key
-- Screen reader announces: "Interactive map panel. Use arrow keys to pan, plus and minus to zoom"
-- Zoom changes announced: "Zoom level 5"
-- Position changes announced: "Map center moved to 40.71 degrees latitude, -74.01 degrees longitude"
 
 ### Distance Line Tool
 
@@ -118,13 +98,6 @@ The right map displays a line with **exactly the same real-world distance** as t
 
 #### Rotating the Line (Right Map)
 
-**Keyboard Rotation**:
-- Ensure the right map line is visible (create a line on the left map first)
-- Press `Arrow Left` to rotate counterclockwise by 5°
-- Press `Arrow Right` to rotate clockwise by 5°
-- Hold `Shift` + `Arrow Left/Right` for 15° rotation steps
-- Bearing is displayed in the tooltip (e.g., "Bearing: 45°")
-
 **Drag to Reposition** (Right Map):
 - **Drag start point (circle)**: Moves the entire line parallel to its current orientation (bearing stays locked)
 - **Drag end point (arrow)**: Rotates the line around the start point (bearing changes, start point stays fixed)
@@ -165,29 +138,12 @@ The right map displays a line with **exactly the same real-world distance** as t
 2. **Compare same distance in Europe**:
    - Pan right map to show Europe
    - Right map shows 3,944 km line centered on the map
-   - Use Arrow keys to rotate the line to desired bearing
-   - Drag endpoints to position the line across specific cities
+   - Drag endpoints to position and rotate the line across specific cities
 
 3. **Adjust measurement**:
    - Drag LA endpoint to San Francisco on left map
    - Distance updates to ~4,130 km
    - Right map line automatically adjusts to maintain the new distance
-
-#### Keyboard Shortcuts Summary
-
-- `📏 Button`: Activate/deactivate Distance Tool
-- `Click + Click` (Left Map): Create distance line
-- `Drag` (Left Map): Adjust endpoints and distance
-- `Arrow Left/Right` (Right Map): Rotate line by 5° (Shift for 15°)
-- `Drag` (Right Map Start): Move line parallel
-- `Drag` (Right Map End): Rotate line around start point
-
-#### Accessibility
-
-- **ARIA labels**: Maps labeled as "Distance measurement tool for left/right map"
-- **Screen reader announcements**: Distance changes announced as "Measurement updated: 1,234 meters"
-- **Focus indicators**: Endpoints show blue outline when focused
-- **Keyboard navigation**: Full control without mouse
 
 ## Architecture
 
@@ -211,12 +167,11 @@ src/
 │   ├── useLeafletMap.ts      # Leaflet initialization & lifecycle
 │   ├── useMapEvents.ts       # Event handling & debouncing
 │   ├── useMapNavigation.ts   # Navigation methods
-│   ├── useMapKeyboard.ts     # Keyboard navigation
 │   ├── useGeodesic.ts        # Geodesic calculations (Haversine formula)
 │   ├── useDistanceLine.ts    # Distance line state management
 │   ├── useLineCreation.ts    # Two-click line creation workflow
 │   ├── useLineDrag.ts        # Endpoint dragging interactions
-│   ├── useLineRotation.ts    # Line rotation (keyboard & mouse)
+│   ├── useLineRotation.ts    # Line rotation (mouse drag)
 │   └── useLineSync.ts        # Left-right map synchronization
 ├── types/
 │   └── map.types.ts          # TypeScript type definitions
@@ -237,7 +192,6 @@ App.vue
     │   ├── useLeafletMap (initialization)
     │   ├── useMapEvents (event handling)
     │   ├── useMapNavigation (navigation methods)
-    │   ├── useMapKeyboard (keyboard support)
     │   └── DistanceLine.vue (distance tool)
     │       ├── useDistanceLine (line state & rendering)
     │       ├── useLineCreation (two-click creation)
@@ -247,7 +201,7 @@ App.vue
         ├── (same map composables)
         └── DistanceLine.vue (synchronized line)
             ├── useDistanceLine (line state & rendering)
-            ├── useLineRotation (keyboard rotation)
+            ├── useLineRotation (mouse rotation)
             ├── useLineDrag (constrained dragging)
             ├── useLineSync (distance synchronization)
             └── useGeodesic (distance calculations)
@@ -271,7 +225,6 @@ DEFAULT_CENTER: { lat: 0, lng: 0 }  // Null Island
 DEFAULT_ZOOM: 2                      // World view
 MIN_ZOOM: 2                          // Prevent over-zoom out
 MAX_ZOOM: 18                         // Street level
-KEYBOARD_PAN_STEP: 50                // Pixels per arrow key press
 EVENT_DEBOUNCE_DELAY: 150            // Milliseconds
 ```
 
@@ -292,11 +245,13 @@ Measured on 25 Mbps connection:
 
 ## Accessibility
 
-- ✅ Keyboard navigation (WCAG 2.1 Level AA)
-- ✅ Screen reader support (ARIA labels and live regions)
-- ✅ Focus indicators (2px blue outline)
-- ✅ High contrast (4.5:1 minimum)
-- ✅ No motion required (keyboard alternative)
+**Note**: This application is optimized for mouse and touch input. Keyboard navigation and screen reader support have been removed to simplify the codebase.
+
+- ✅ Touch gestures supported (pinch, drag)
+- ✅ Mouse interaction fully supported
+- ✅ Responsive layout adapts to device size
+- ❌ Keyboard navigation not supported
+- ❌ Screen reader announcements not available
 
 ## Development
 

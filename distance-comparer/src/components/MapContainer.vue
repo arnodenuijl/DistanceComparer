@@ -7,8 +7,6 @@
       'map-container--side-by-side': currentLayout === 'side-by-side',
       'map-container--stacked': currentLayout === 'stacked',
     }"
-    role="region"
-    aria-label="Dual map comparison view"
   >
     <!-- T032: Header slot -->
     <div v-if="$slots.header" class="map-container__header">
@@ -26,10 +24,7 @@
             :initial-zoom="leftMapConfig?.initialZoom"
             :min-zoom="leftMapConfig?.minZoom"
             :max-zoom="leftMapConfig?.maxZoom"
-            :enable-keyboard="leftMapConfig?.enableKeyboard"
             @map-ready="handleMapReady('left', $event)"
-            @focus-gained="handlePanelFocus('left')"
-            @focus-lost="handlePanelBlur('left')"
           />
         </slot>
       </div>
@@ -47,10 +42,7 @@
             :initial-zoom="rightMapConfig?.initialZoom"
             :min-zoom="rightMapConfig?.minZoom"
             :max-zoom="rightMapConfig?.maxZoom"
-            :enable-keyboard="rightMapConfig?.enableKeyboard"
             @map-ready="handleMapReady('right', $event)"
-            @focus-gained="handlePanelFocus('right')"
-            @focus-lost="handlePanelBlur('right')"
           />
         </slot>
       </div>
@@ -76,7 +68,6 @@ interface MapPanelConfig {
   initialZoom?: number
   minZoom?: number
   maxZoom?: number
-  enableKeyboard?: boolean
 }
 
 interface Props {
@@ -96,17 +87,12 @@ const props = withDefaults(defineProps<Props>(), {
 // T031: Define events
 const emit = defineEmits<{
   'layout-changed': [payload: { layout: LayoutMode; viewportWidth: number }]
-  'panel-focus-changed': [payload: {
-    focusedPanel: 'left' | 'right' | null
-    previousPanel: 'left' | 'right' | null
-  }]
 }>()
 
 // State
 const leftMapRef = ref<InstanceType<typeof MapPanel> | null>(null)
 const rightMapRef = ref<InstanceType<typeof MapPanel> | null>(null)
 const viewportWidth = ref(window.innerWidth)
-const focusedPanel = ref<'left' | 'right' | null>(null)
 
 // T029: Responsive layout logic
 const currentLayout = computed<LayoutMode>(() => {
@@ -156,26 +142,6 @@ onUnmounted(() => {
 // Event handlers
 const handleMapReady = (panel: 'left' | 'right', event: any) => {
   console.log(`${panel} map ready:`, event)
-}
-
-const handlePanelFocus = (panel: 'left' | 'right') => {
-  const previousPanel = focusedPanel.value
-  focusedPanel.value = panel
-  emit('panel-focus-changed', {
-    focusedPanel: panel,
-    previousPanel,
-  })
-}
-
-const handlePanelBlur = (panel: 'left' | 'right') => {
-  if (focusedPanel.value === panel) {
-    const previousPanel = focusedPanel.value
-    focusedPanel.value = null
-    emit('panel-focus-changed', {
-      focusedPanel: null,
-      previousPanel,
-    })
-  }
 }
 
 // T035: Expose methods

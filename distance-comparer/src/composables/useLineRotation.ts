@@ -17,10 +17,6 @@ interface UseLineRotationOptions {
   onRotate?: (bearing: number) => void
   /** Callback when rotation ends */
   onRotationEnd?: (bearing: number) => void
-  /** Enable keyboard rotation */
-  enableKeyboard?: boolean
-  /** Check if rotation should be active (e.g., if line exists) */
-  isRotationActive?: () => boolean
 }
 
 export function useLineRotation(options: UseLineRotationOptions) {
@@ -30,8 +26,6 @@ export function useLineRotation(options: UseLineRotationOptions) {
     onRotationStart,
     onRotate,
     onRotationEnd,
-    enableKeyboard = true,
-    isRotationActive,
   } = options
 
   // T043: Rotation state
@@ -135,36 +129,6 @@ export function useLineRotation(options: UseLineRotationOptions) {
   }
 
   /**
-   * T045: Handle keyboard rotation
-   * Arrow Left/Right: ±5°
-   * Shift+Arrow Left/Right: ±15°
-   * Only handles keys if rotation is active (line exists)
-   */
-  const handleKeyboardRotation = (event: KeyboardEvent): void => {
-    if (!enableKeyboard) return
-    
-    // Only handle rotation if line exists (if callback provided)
-    if (isRotationActive && !isRotationActive()) return
-
-    const step = event.shiftKey ? 15 : 5
-
-    switch (event.key) {
-      case 'ArrowLeft':
-        event.preventDefault()
-        event.stopPropagation()
-        event.stopImmediatePropagation()
-        rotateBearing(-step)
-        break
-      case 'ArrowRight':
-        event.preventDefault()
-        event.stopPropagation()
-        event.stopImmediatePropagation()
-        rotateBearing(step)
-        break
-    }
-  }
-
-  /**
    * Rotate bearing by delta degrees
    */
   const rotateBearing = (deltaDegrees: number): void => {
@@ -216,7 +180,6 @@ export function useLineRotation(options: UseLineRotationOptions) {
     // Methods
     startMouseRotation,
     endMouseRotation,
-    handleKeyboardRotation,
     rotateBearing,
     setBearing,
     reset,

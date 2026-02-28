@@ -41,9 +41,3 @@ button {
   font-family: inherit;
   cursor: pointer;
 }
-
-/* Focus styles for accessibility - exclude Leaflet internals */
-:focus-visible:not(.leaflet-container *) {
-  outline: 2px solid #646cff;
-  outline-offset: 2px;
-}

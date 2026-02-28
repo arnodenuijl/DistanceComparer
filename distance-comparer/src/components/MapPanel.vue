@@ -1,15 +1,8 @@
 <template>
   <!-- T018: MapPanel component with template ref -->
-  <!-- T074-T075: Add keyboard focus support -->
   <div
     ref="containerRef"
     class="map-panel"
-    :class="{ 'map-panel--focused': isFocused }"
-    tabindex="0"
-    role="application"
-    :aria-label="`Interactive map panel ${id}. Use arrow keys to pan, plus and minus to zoom, Escape to blur.`"
-    @focus="handleFocus"
-    @blur="handleBlur"
   >
     <!-- T022: Loading state UI -->
     <div v-if="loadingState === 'loading'" class="map-panel__loading">
@@ -40,15 +33,7 @@
       <slot name="distance-line" :map="map" :map-id="id"></slot>
     </div>
 
-    <!-- T083-T086: ARIA live region for screen reader announcements -->
-    <div
-      class="map-panel__sr-only"
-      role="status"
-      aria-live="polite"
-      aria-atomic="true"
-    >
-      {{ srAnnouncement }}
-    </div>
+
   </div>
 </template>
 
@@ -57,7 +42,6 @@ import { ref, computed, watch } from 'vue'
 import { useLeafletMap } from '../composables/useLeafletMap'
 import { useMapEvents } from '../composables/useMapEvents'
 import { useMapNavigation } from '../composables/useMapNavigation'
-import { useMapKeyboard } from '../composables/useMapKeyboard'
 import { DEFAULT_MAP_CONFIG, DEFAULT_TILE_CONFIG } from '../config/map.config'
 import type { Coordinate, Bounds, MapError } from '../types/map.types'
 
@@ -70,7 +54,6 @@ interface Props {
   maxZoom?: number
   tileUrl?: string
   attribution?: string
-  enableKeyboard?: boolean
   showDistanceLine?: boolean  // T019: Feature 002 - Show distance line overlay
   lineCreationMode?: boolean  // T019: Feature 002 - Enable line creation mode
 }
@@ -83,7 +66,6 @@ const props = withDefaults(defineProps<Props>(), {
   maxZoom: () => DEFAULT_MAP_CONFIG.maxZoom,
   tileUrl: () => DEFAULT_TILE_CONFIG.urlTemplate,
   attribution: () => DEFAULT_TILE_CONFIG.attribution,
-  enableKeyboard: true,
   showDistanceLine: false,     // T019: Feature 002 default
   lineCreationMode: false,     // T019: Feature 002 default
 })
@@ -97,8 +79,6 @@ const emit = defineEmits<{
   'loading-start': [payload: { mapId: string }]
   'loading-end': [payload: { mapId: string; success: boolean }]
   'error': [payload: { mapId: string; error: MapError }]
-  'focus-gained': [payload: { mapId: string }]
-  'focus-lost': [payload: { mapId: string }]
   'line-created': [payload: any]  // T019: Feature 002 event
   'distance-changed': [payload: any]  // T019: Feature 002 event
 }>()
@@ -140,27 +120,16 @@ const navigation = useMapNavigation({ map })
 const tileLoadRetryCount = ref(0)
 const maxRetryAttempts = tileConfig.value.retryAttempts || 3
 
-// T083-T086: Screen reader announcement state
-const srAnnouncement = ref<string>('')
-
 useMapEvents(
   { map },
   {
     // T053: Wire up center-changed event
     onCenterChanged: (center) => {
       emit('center-changed', { mapId: props.id, center })
-      // T085: Announce center changes to screen readers
-      if (isFocused.value && props.enableKeyboard) {
-        srAnnouncement.value = `Map center moved to ${center.lat.toFixed(2)} degrees latitude, ${center.lng.toFixed(2)} degrees longitude`
-      }
     },
     // T054: Wire up zoom-changed event
     onZoomChanged: (zoom) => {
       emit('zoom-changed', { mapId: props.id, zoom })
-      // T084: Announce zoom changes to screen readers
-      if (isFocused.value && props.enableKeyboard) {
-        srAnnouncement.value = `Zoom level ${zoom}`
-      }
     },
     // T055: Wire up bounds-changed event
     onBoundsChanged: (bounds) => {
@@ -230,28 +199,6 @@ const handleRetry = () => {
   }
 }
 
-// T074: Integrate useMapKeyboard composable
-const keyboard = props.enableKeyboard
-  ? useMapKeyboard(map, containerRef, {})
-  : { isFocused: ref(false), handleFocus: () => {}, handleBlur: () => {} }
-
-const isFocused = keyboard.isFocused
-
-// T076-T078: Focus handling with event emissions
-const handleFocus = () => {
-  if (props.enableKeyboard) {
-    keyboard.handleFocus()
-  }
-  emit('focus-gained', { mapId: props.id })
-}
-
-const handleBlur = () => {
-  if (props.enableKeyboard) {
-    keyboard.handleBlur()
-  }
-  emit('focus-lost', { mapId: props.id })
-}
-
 // T025, T057: Expose methods via defineExpose
 defineExpose({
   setView: navigation.setView,
@@ -277,16 +224,6 @@ defineExpose({
   height: 100%;
   background-color: #f0f0f0;
   overflow: hidden;
-}
-
-/* T079: Focus indicator styling */
-.map-panel:focus {
-  outline: none;
-}
-
-.map-panel:focus-visible,
-.map-panel--focused {
-  box-shadow: inset 0 0 0 2px #646cff;
 }
 
 .map-panel__loading,
@@ -336,18 +273,5 @@ defineExpose({
   top: 10px;
   right: 10px;
   z-index: 1000;
-}
-
-/* T083: Screen reader only - visually hidden but accessible */
-.map-panel__sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
 }
 </style>
