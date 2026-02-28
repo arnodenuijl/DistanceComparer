@@ -23,16 +23,12 @@ const handleLayoutChange = (event: any) => {
   console.log('Layout changed:', event)
 }
 
-// T063-T065: Event logging for navigation testing
-const lastEvent = ref<string>('Waiting for interaction...')
-
+// Event handlers - console logging only (debug UI removed per US3)
 const handleCenterChanged = (event: { mapId: string; center: Coordinate }) => {
-  lastEvent.value = `${event.mapId}: Center → ${event.center.lat.toFixed(4)}, ${event.center.lng.toFixed(4)}`
   console.log('Center changed:', event)
 }
 
 const handleZoomChanged = (event: { mapId: string; zoom: number }) => {
-  lastEvent.value = `${event.mapId}: Zoom → ${event.zoom}`
   console.log('Zoom changed:', event)
 }
 
@@ -49,33 +45,30 @@ const handleLoadingEnd = (event: { mapId: string; success: boolean }) => {
 }
 
 const handleError = (event: any) => {
-  lastEvent.value = `${event.mapId}: ERROR - ${event.error.message}`
   console.error('Map error:', event)
 }
 
-// MVP Test: Distance Line Tool State
-const showDistanceTool = ref(false)
-const isCreatingLine = ref(false)
+// Distance Line Tool State - Auto-activated per US1
+const showDistanceTool = ref(true)  // T001: Auto-activate on load
+const isCreatingLine = ref(true)    // T002: Ready for clicks immediately
 const currentDistance = ref<string>('')
 
 // T038: Ref to right map DistanceLine component for synchronization
 const rightDistanceLine = ref<InstanceType<typeof DistanceLine> | null>(null)
 
-const toggleDistanceTool = () => {
-  showDistanceTool.value = !showDistanceTool.value
-  if (showDistanceTool.value) {
-    isCreatingLine.value = true
-    lastEvent.value = 'Distance tool activated - Click two points on the left map'
-  } else {
-    isCreatingLine.value = false
-    currentDistance.value = ''
-    lastEvent.value = 'Distance tool deactivated'
-  }
+// US2: Reset functionality - clears lines and returns to creation mode
+const resetDistanceLine = () => {
+  isCreatingLine.value = true
+  currentDistance.value = ''
+  // Toggle showDistanceTool to remount components and clear lines
+  showDistanceTool.value = false
+  setTimeout(() => {
+    showDistanceTool.value = true
+  }, 0)
 }
 
 const handleLineCreated = (event: any) => {
   isCreatingLine.value = false
-  lastEvent.value = `Line created!`
   console.log('Line created:', event)
 
   // T040-T041: Create initial line on right map when left line is created
@@ -88,7 +81,6 @@ const handleLineCreated = (event: any) => {
 // T037-T038: Handle distance changes and sync to right map
 const handleDistanceChanged = (event: any) => {
   currentDistance.value = event.distanceDisplay
-  lastEvent.value = `Distance: ${event.distanceDisplay}`
   console.log('Distance changed:', event)
 
   // T038: Update right map line distance (synchronized)
@@ -108,21 +100,37 @@ const handleDistanceChanged = (event: any) => {
   <div class="app">
     <!-- T039: App header -->
     <header class="app-header">
-      <h1>Distance Comparer</h1>
-      <p class="app-subtitle">Compare locations with dual interactive maps</p>
-      <div class="header-controls">
-        <button 
-          @click="toggleDistanceTool" 
-          class="distance-tool-button"
-          :class="{ active: showDistanceTool }"
-        >
-          {{ showDistanceTool ? '✓ Distance Tool Active' : '📏 Activate Distance Tool' }}
-        </button>
-        <span v-if="currentDistance" class="distance-display">
-          Distance: {{ currentDistance }}m
-        </span>
+      <div class="header-top">
+        <div class="header-left">
+          <h1>Distance Comparer</h1>
+          <p class="app-subtitle">Compare locations with dual interactive maps</p>
+        </div>
+        
+        <!-- US1: Usage instructions for first-time users -->
+        <div class="usage-instructions" role="region" aria-label="Instructions">
+          <ol>
+            <li>Click two points on the left map to measure distance</li>
+            <li>Drag and rotate the line on the right map to compare</li>
+            <li>Click Reset to start a new measurement</li>
+          </ol>
+        </div>
       </div>
-      <div class="event-log">{{ lastEvent }}</div>
+      
+      <div class="header-controls">
+        <span class="distance-display" :class="{ hidden: !currentDistance }">
+          Distance: {{ currentDistance || '0' }}m
+        </span>
+        <button 
+          @click="resetDistanceLine" 
+          class="reset-button"
+          :class="{ hidden: !currentDistance }"
+          type="button"
+          aria-label="Reset distance line"
+          :disabled="!currentDistance"
+        >
+          Reset
+        </button>
+      </div>
     </header>
 
     <!-- T036: MapContainer with configured maps -->
@@ -182,11 +190,8 @@ const handleDistanceChanged = (event: any) => {
           </MapPanel>
         </template>
 
-        <template #header="{ layout }">
-          <div class="layout-indicator">
-            Current layout: <strong>{{ layout }}</strong>
-            <span class="hint">→ Try panning and zooming each map independently</span>
-          </div>
+        <template #header>
+          <!-- US3: Layout indicator removed for cleaner interface -->
         </template>
       </MapContainer>
     </main>
@@ -211,6 +216,17 @@ const handleDistanceChanged = (event: any) => {
   flex-shrink: 0;
 }
 
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 32px;
+}
+
+.header-left {
+  flex: 0 0 auto;
+}
+
 .app-header h1 {
   margin: 0;
   font-size: 24px;
@@ -223,14 +239,47 @@ const handleDistanceChanged = (event: any) => {
   opacity: 0.9;
 }
 
+/* US1: Usage instructions styling */
+.usage-instructions {
+  flex: 0 0 auto;
+  padding: 8px 16px 8px 12px;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  line-height: 1.4;
+}
+
+.usage-instructions ol {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  opacity: 0.95;
+  color: white;
+}
+
+.usage-instructions li {
+  margin: 3px 0;
+}
+
+.usage-instructions li::marker {
+  font-weight: 600;
+}
+
 .header-controls {
   margin-top: 12px;
   display: flex;
   align-items: center;
   gap: 16px;
+  min-height: 40px;
 }
 
-.distance-tool-button {
+/* Hidden state for controls - preserves layout space */
+.header-controls .hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* US2: Reset button styling */
+.reset-button {
   padding: 8px 16px;
   background-color: rgba(255, 255, 255, 0.2);
   border: 2px solid rgba(255, 255, 255, 0.3);
@@ -239,19 +288,21 @@ const handleDistanceChanged = (event: any) => {
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
 }
 
-.distance-tool-button:hover {
+.reset-button:not(.hidden):hover {
   background-color: rgba(255, 255, 255, 0.3);
   border-color: rgba(255, 255, 255, 0.5);
 }
 
-.distance-tool-button.active {
-  background-color: rgba(255, 255, 255, 0.95);
-  color: #667eea;
-  border-color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+.reset-button:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
+}
+
+.reset-button:disabled {
+  cursor: default;
 }
 
 .distance-display {
@@ -261,38 +312,12 @@ const handleDistanceChanged = (event: any) => {
   border-radius: 4px;
   font-weight: 600;
   font-size: 14px;
-}
-
-.event-log {
-  margin-top: 8px;
-  padding: 8px 12px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  min-height: 32px;
+  transition: opacity 0.2s ease;
 }
 
 .app-main {
   flex: 1;
   overflow: hidden;
   min-height: 0;
-}
-
-.layout-indicator {
-  font-size: 14px;
-  color: #666;
-}
-
-.layout-indicator strong {
-  color: #333;
-  text-transform: capitalize;
-}
-
-.hint {
-  margin-left: 12px;
-  font-size: 12px;
-  color: #999;
-  font-style: italic;
 }
 </style>
