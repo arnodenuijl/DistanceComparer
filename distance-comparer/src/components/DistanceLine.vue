@@ -39,7 +39,7 @@
  * T050: Keyboard rotation listeners
  * T053-T054: Accessibility (ARIA, screen reader)
  */
-import { watch, onMounted, onUnmounted, toRef, ref, computed } from 'vue'
+import { watch, onMounted, onUnmounted, toRef, ref } from 'vue'
 import type L from 'leaflet'
 import type { DistanceLine as DistanceLineType, Coordinate } from '../types/map.types'
 import { useDistanceLine } from '../composables/useDistanceLine'
